@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/TableroIndicadoresEjetic/static/css/main.7d465135.css",
+    "main.js": "/TableroIndicadoresEjetic/static/js/main.fd81b5f4.js",
+    "index.html": "/TableroIndicadoresEjetic/index.html",
+    "main.7d465135.css.map": "/TableroIndicadoresEjetic/static/css/main.7d465135.css.map",
+    "main.fd81b5f4.js.map": "/TableroIndicadoresEjetic/static/js/main.fd81b5f4.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7d465135.css",
+    "static/js/main.fd81b5f4.js"
+  ]
+}
