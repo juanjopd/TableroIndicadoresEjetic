@@ -58,10 +58,7 @@ const Admin = () => {
         }}
       >
         <Form noValidate>
-        <TeamSelect
-            dataEntidades={dataEntidades}
-            onSelectEntity={handleSelectEntity}
-          />
+        
         </Form>
         <Box>
           <Agregar />
