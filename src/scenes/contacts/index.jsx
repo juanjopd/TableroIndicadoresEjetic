@@ -11,56 +11,45 @@ const Contacts = () => {
 
   const columns = [
     { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "registrarId", headerName: "Registrar ID" },
     {
       field: "name",
-      headerName: "Name",
+      headerName: "nombre indicador",
       flex: 1,
       cellClassName: "name-column--cell",
     },
     {
-      field: "age",
-      headerName: "Age",
+      field: "meta",
+      headerName: "Meta",
       type: "number",
       headerAlign: "left",
       align: "left",
     },
     {
-      field: "phone",
-      headerName: "Phone Number",
+      field: "tendencia",
+      headerName: "Tedencia",
       flex: 1,
     },
     {
-      field: "email",
-      headerName: "Email",
+      field: "limite_ins",
+      headerName: "Limite insatifacion",
       flex: 1,
     },
     {
-      field: "address",
-      headerName: "Address",
+      field: "limite_sat",
+      headerName: "Limite satisfacion",
       flex: 1,
-    },
-    {
-      field: "city",
-      headerName: "City",
-      flex: 1,
-    },
-    {
-      field: "zipCode",
-      headerName: "Zip Code",
-      flex: 1,
-    },
+    }
   ];
 
   return (
     <Box m="20px">
       <Header
-        title="CONTACTS"
-        subtitle="List of Contacts for Future Reference"
+        title="TABLERO"
       />
       <Box
         m="40px 0 0 0"
-        height="75vh"
+        height="70vh"
+        width="90vh"
         sx={{
           "& .MuiDataGrid-root": {
             border: "none",

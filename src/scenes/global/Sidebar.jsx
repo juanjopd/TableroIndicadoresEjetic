@@ -16,6 +16,15 @@ import PieChartOutlineOutlinedIcon from "@mui/icons-material/PieChartOutlineOutl
 import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
 import MapOutlinedIcon from "@mui/icons-material/MapOutlined";
+import List from '@mui/material/List';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemButton from '@mui/material/ListItemButton';
+import Collapse from '@mui/material/Collapse';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import EastIcon from '@mui/icons-material/East';
+
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -40,6 +49,11 @@ const Sidebar = () => {
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("Dashboard");
+  const [open, setOpen] = useState(false);
+
+    const handleClick = () => {
+    setOpen(!open);
+  };
 
   return (
     <Box
@@ -97,7 +111,11 @@ const Sidebar = () => {
                   width="100px"
                   height="100px"
                   src={`../../assets/logo ejetic .png`}
-                  style={{ cursor: "pointer", borderRadius: "100%",  backgroundColor: "#293040"}}
+                  style={{
+                    cursor: "pointer",
+                    borderRadius: "100%",
+                    backgroundColor: "#293040",
+                  }}
                 />
               </Box>
               <Box textAlign="center">
@@ -118,7 +136,7 @@ const Sidebar = () => {
 
           <Box paddingLeft={isCollapsed ? undefined : "5%"}>
             <Item
-              title="Dashboard"
+              title="Inicio"
               to="/"
               icon={<HomeOutlinedIcon />}
               selected={selected}
@@ -140,19 +158,33 @@ const Sidebar = () => {
               setSelected={setSelected}
             />
             <Item
-              title="Contacts Information"
+              title="Tablero"
               to="/contacts"
               icon={<ContactsOutlinedIcon />}
               selected={selected}
               setSelected={setSelected}
             />
-            <Item
-              title="Agregar datos a indicador"
-              to="/invoices"
-              icon={<ReceiptOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
+            
+            <ListItemButton onClick={handleClick } sx={{width: '100%', maxWidth: 360, marginLeft: '-15px' }}>
+              <Item
+                title="Indicadores"
+                to="/invoices"
+                icon={<ReceiptOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+              {open ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+            <Collapse in={open} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                <ListItemButton sx={{ pl: 7}}>
+                  <ListItemIcon>
+                    <EastIcon  />
+                  </ListItemIcon>
+                  <ListItemText primary="Starred" />
+                </ListItemButton>
+              </List>
+            </Collapse>
 
             <Typography
               variant="h6"
