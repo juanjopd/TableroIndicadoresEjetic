@@ -1,6 +1,4 @@
 {
-  "homepage": "https://juanjopd.github.io/TableroIndicadoresEjetic",
-  "name": "react-admin",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

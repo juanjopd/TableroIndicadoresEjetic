@@ -1,45 +1,71 @@
 import { Box } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
-import { mockDataContacts } from "../../data/mockData";
 import Header from "../../components/Header";
 import { useTheme } from "@mui/material";
+import { useEffect, useState } from "react";
+import Tooltip from '@mui/material/Tooltip';
 
 const Contacts = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
   const columns = [
-    { field: "id", headerName: "ID", flex: 0.5 },
+    { field: "id_completo", headerName: "ID", flex: 0.1 },
     {
-      field: "name",
+      field: "nombre_indicador",
       headerName: "nombre indicador",
       flex: 1,
       cellClassName: "name-column--cell",
+      renderCell: (params) => (
+        <Tooltip title={params.value}>
+          <span>{params.value}</span>
+        </Tooltip>
+      ),
     },
     {
       field: "meta",
       headerName: "Meta",
       type: "number",
-      headerAlign: "left",
-      align: "left",
+      headerAlign: "center",
+      align: "center",
+      flex: 0.3, 
     },
     {
       field: "tendencia",
       headerName: "Tedencia",
-      flex: 1,
+      headerAlign: "center",
+      align: "center",
+      flex: 0.6,
     },
     {
-      field: "limite_ins",
+      field: "Limite_insatifacion",
       headerName: "Limite insatifacion",
-      flex: 1,
+      align: "center",
+      flex: 0.8,
     },
     {
-      field: "limite_sat",
+      field: "Limite_satifacion",
       headerName: "Limite satisfacion",
-      flex: 1,
+      flex: 0.8,
+      align: "center",
     }
   ];
+
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/tablero")
+      .then((response) => response.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setData(data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error al obtener los datos:", error);
+      });
+  }, []);
 
   return (
     <Box m="20px">
@@ -79,8 +105,9 @@ const Contacts = () => {
           },
         }}
       >
+
         <DataGrid
-          rows={mockDataContacts}
+          rows={data}
           columns={columns}
           components={{ Toolbar: GridToolbar }}
         />

@@ -3,15 +3,7 @@ import { Form } from "react-bootstrap";
 
 
 const TeamSelect = ({ dataEntidades, onSelectEntity }) => {
-  const handleSelectChange = (event) => {
-    const selectedEntityName = event.target.value;
-    console.log("Selected Entity Name:", selectedEntityName); // Verifica que esté recibiendo el valor correcto
-    const selectedEntity = dataEntidades.find(
-      (entity) => entity.name === selectedEntityName
-    );
-    console.log("Selected Entity:", selectedEntity); // Verifica si se encuentra la entidad correctamente
-    onSelectEntity(selectedEntity);
-  };
+
 
   return (
     <div>

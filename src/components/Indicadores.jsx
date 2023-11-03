@@ -1,37 +1,59 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box, Card, CardContent, Typography, CardActionArea, useTheme, Button} from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import Modal from 'react-modal';
 import BarChart from "./BarChart";
 import { tokens } from "../theme";
-import useMediaQuery from "@mui/material/useMediaQuery";
+import axios from 'axios';
 import { useForm, Controller } from "react-hook-form";
 import { Row, Col, Form } from "react-bootstrap";
+
+
 
 const VentanaEmergenteComponente = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
   const [modalAbierto, setModalAbierto] = useState(false);
-  const [modalAbierto2, setModalAbierto2] = useState(false);
+  const [datos, setDatos] = useState([]);
+  const [datosT, setDatosT] = useState([]);
+  const [modalId, setModalId] = useState(null);
 
-  const abrirModal = () => {
+  const abrirModal = (id) => {
     setModalAbierto(true);
+    setModalId(id);
   };
 
   const cerrarModal = () => {
     setModalAbierto(false);
   };
 
-  const abrirModal2 = () => {
-    setModalAbierto2(true);
-  };
+  
+  useEffect(() => {
+    // Realiza la solicitud a la base de datos utilizando Axios
+    axios
+      .get("http://localhost:3001/indicador")
+      .then((response) => {
+        // Actualiza los datos obtenidos en el estado
+        setDatos(response.data);
+      })
+      .catch((error) => {
+        console.error("Error al obtener los datos:", error);
+      });
+  }, []);
 
-  const cerrarModal2 = () => {
-    setModalAbierto2(false);
-  };
+  useEffect(() => {
+    axios
+    .get("https://localhost:3001/indicadort:id")
+    .then((response) => {
+      setDatosT(response.data);
+    })
+    .catch((error) => {
+      console.error("Error al obtener los datos:", error);
+    })
+  })
 
-  const isNonMobile = useMediaQuery("(min-width:600px)");
+
 
   const modalEstilos = {
     overlay: {
@@ -70,156 +92,259 @@ const VentanaEmergenteComponente = () => {
     },
   };
 
-  /* const customStyles = {
-    control: (provided, state) => ({
-      ...provided,
-      backgroundColor: "#293040",
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isSelected ? "#293040" : "transparent", // Estilo personalizado para el fondo de las opciones
-      color: state.isSelected ? "white" : "black",
-    }),
-    singleValue: (provided, state) => ({
-      ...provided,
-      color: "white",
-    }),
-  }; */
-
-  const months = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-  ];
-
-  const [data, setData] = useState([]);
-  const { handleSubmit, control, reset } = useForm();
-  
-
-
   const columns = [
     { field: "id", headerName: "ID", flex: 0.5 },
     { field: "mes", headerName: "Mes", flex: 1 },
-    { field: "ano", headerName: "Año", flex: 1 },
+    { field: "año", headerName: "Año", flex: 1 },
     { field: "numerador", headerName: "Numerador", type: "number", flex: 1 },
-    { field: "denominador", headerName: "Denominador", type: "number", flex: 1 },
+    {
+      field: "denominador",
+      headerName: "Denominador",
+      type: "number",
+      flex: 1,
+    },
     { field: "logro", headerName: "Logro", type: "number", flex: 1 },
     { field: "causas", headerName: "Causas", flex: 1 },
     { field: "propuestas", headerName: "Propuestas", flex: 1 },
   ];
 
+  const months = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
 
-  const currentYear = new Date().getFullYear();
-  const nextYears = [];
 
-  for (let i = 0; i < 5; i++) {
-    const year = currentYear + i;
-    nextYears.push({ value: year, label: year.toString() });
-  }
+const currentYear = new Date().getFullYear();
+const nextYears = [];
 
-  const onSubmit = (formData) => {
-    const numericNumerador = parseFloat(formData.numerador);
-    const numericDenominador = parseFloat(formData.denominador);
+for (let i = 0; i < 5; i++) {
+  const year = currentYear + i;
+  nextYears.push({ value: year, label: year.toString() });
+}
 
-    if (!isNaN(numericNumerador) && !isNaN(numericDenominador)) {
-      const resultado = (numericNumerador * 100) / numericDenominador;
+const handleSubmitForm = async (data) => {
+  const numerador = data.numerador;
+  const denominador = data.denominador;
 
-      const newData = {
-        id: data.length + 1,
-        mes: formData.mes,
-        ano: formData.ano,
-        numerador: numericNumerador,
-        denominador: numericDenominador,
-        logro: resultado.toFixed(0)+ "%",
-        causas: formData.causas,
-        propuestas: formData.propuestas,
-      };
+  const logro = (numerador / denominador) * 100;
 
-      setData((prevData) => [...prevData, newData]);
-      reset();
-    }
+  const datosConModalId = {
+    ...data,
+    logro,
+    modalId: modalId
   };
 
+  try {
+    // Realiza la solicitud POST utilizando Axios
+    const response = await axios.post('http://localhost:3001/indicadort', datosConModalId);
+    
+    // Maneja la respuesta del servidor
+    console.log(response.data);
+  } catch (error) {
+    // Maneja los errores de la solicitud
+    console.error(error);
+  }
 
-    return (
-      <>
-        <div>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div>
-              <label>Numerador:</label>
-              <Controller
-                name="numerador"
-                control={control}
-                defaultValue=""
-                render={({ field }) => <input type="text" {...field} />}
-              />
-            </div>
-            <div>
-              <label>Denominador:</label>
-              <Controller
-                name="denominador"
-                control={control}
-                defaultValue=""
-                render={({ field }) => <input type="text" {...field} />}
-              />
-            </div>
-            <div>
-              <label>Causas:</label>
-              <Controller
-                name="causas"
-                control={control}
-                defaultValue=""
-                render={({ field }) => <input type="text" {...field} />}
-              />
-            </div>
-            <div>
-              <label>Propuestas:</label>
-              <Controller
-                name="propuestas"
-                control={control}
-                defaultValue=""
-                render={({ field }) => <input type="text" {...field} />}
-              />
-            </div>
-            <div>
-              <label>Mes:</label>
-              <Controller
-                name="mes"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <select {...field}>
-                    <option value="">Selecciona un mes</option>
-                    {months.map((month) => (
-                      <option key={month} value={month}>
-                        {month}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              />
-            </div>
-            <div>
-              <label>Año:</label>
-              <Controller
-                name="ano"
-                control={control}
-                defaultValue=""
-                render={({ field }) => (
-                  <select {...field}>
-                    <option value="">Selecciona un año</option>
-                    {nextYears.map((yearOption) => (
-                      <option key={yearOption.value} value={yearOption.value}>
-                        {yearOption.label}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              />
-            </div>
-            <Button color="secondary" variant="contained" type="submit">
-              Calcular
-            </Button>
-          </form>
+  reset();
+//   window.location.reload();
+};
+
+
+const {
+  handleSubmit,
+  control,
+  reset,
+  formState: { errors },
+} = useForm({
+  defaultValues: {
+    numerador: "",
+    denominador: "",
+    causas: "",
+    mes: "",
+    año: "",
+    propuestas: "",
+  },
+});
+
+  return (
+    <>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+        }}
+      >
+        {datos.map((dato) => (
+          <Box width="300px" key={dato.id} style={{ marginBottom: "20px" }}>
+            <Card>
+              <CardActionArea onClick={() => abrirModal(dato.id)}>
+                <CardContent>
+                  <Typography gutterBottom variant="h5" component="div">
+                    {dato.nombre_indicador}
+                  </Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          </Box>
+        ))}
+        <Modal
+          isOpen={modalAbierto}
+          onRequestClose={cerrarModal}
+          contentLabel="Modal1"
+          style={modalEstilos}
+        >
+          <h2 style={modalEstilos.title}>
+            {datos.find((dato) => dato.id === modalId)?.nombre_indicador}
+          </h2>
+       
+          {/* */}
+
+          <Form noValidate onSubmit={handleSubmit(handleSubmitForm)}>
+            <Row className="mb-3">
+              <Form.Group as={Col} md="6" controlId="denominador">
+                <Form.Label>Denominador</Form.Label>
+                <Controller
+                  id="denominador"
+                  name="denominador"
+                  rules={{ required: true }}
+                  control={control}
+                  render={({ field }) => (
+                    <Form.Control
+                      isInvalid={errors.denominador}
+                      type="number"
+                      {...field}
+                      placeholder="denominador"
+                    />
+                  )}
+                />
+                <Form.Control.Feedback type="invalid">
+                  Requerido
+                </Form.Control.Feedback>
+              </Form.Group>
+              <Form.Group as={Col} md="6" controlId="numerador">
+                <Form.Label>Numerador:</Form.Label>
+                <Controller
+                  id="numerador"
+                  name="numerador"
+                  rules={{ required: true }}
+                  control={control}
+                  render={({ field }) => (
+                    <Form.Control
+                      type="number"
+                      {...field}
+                      placeholder="Numerador"
+                    />
+                  )}
+                />
+                <Form.Control.Feedback type="invalid">
+                  Requerido
+                </Form.Control.Feedback>
+              </Form.Group>
+            </Row>
+            <Row className="mb-3">
+              <Form.Group as={Col} md="12" controlId="causas">
+                <Form.Label>Causas</Form.Label>
+                <Controller
+                  id="causas"
+                  name="causas"
+                  rules={{ required: true }}
+                  control={control}
+                  render={({ field }) => (
+                    <Form.Control
+                      isInvalid={errors.causas}
+                      type="text"
+                      {...field}
+                      placeholder="causas"
+                      style={{ width: "100%" }} // Añade este estilo para ocupar todo el ancho
+                    />
+                  )}
+                />
+                <Form.Control.Feedback type="invalid">
+                  Requerido
+                </Form.Control.Feedback>
+              </Form.Group>
+              <Form.Group as={Col} md="12" controlId="propuestas">
+                <Form.Label>Propuestas</Form.Label>
+                <Controller
+                  id="propuestas"
+                  name="propuestas"
+                  rules={{ required: true }}
+                  control={control}
+                  render={({ field }) => (
+                    <Form.Control
+                      type="text"
+                      {...field}
+                      placeholder="Propuestas"
+                      style={{ width: "100%" }} // Añade este estilo para ocupar todo el ancho
+                    />
+                  )}
+                />
+                <Form.Control.Feedback type="invalid">
+                  Requerido
+                </Form.Control.Feedback>
+              </Form.Group>
+            </Row>
+            <Row className="mb-3">
+              <Form.Group as={Col} md="6" controlId="mes">
+                <Form.Label>Mes</Form.Label>
+                <Controller
+                  id="mes"
+                  name="mes"
+                  control={control}
+                  render={({ field }) => (
+                    <Form.Select
+                      size="sm"
+                      aria-label="Mes"
+                      {...field}
+                      style={{ marginRight: "10px" }} // Añade este estilo para dejar espacio entre los selects
+                    >
+                      <option>Selecciona el mes</option>
+                      {months.map((mes, index) => (
+                        <option key={index} value={mes}>
+                          {mes}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  )}
+                />
+              </Form.Group>
+              <Form.Group as={Col} md="6" controlId="año">
+                <Form.Label>Año</Form.Label>
+                <Controller
+                  id="año"
+                  name="año"
+                  control={control}
+                  render={({ field }) => (
+                    <Form.Select size="sm" aria-label="Año" {...field}>
+                      <option>Selecciona el año</option>
+                      {nextYears.map((yearObj, index) => (
+                        <option key={index} value={yearObj.value}>
+                          {yearObj.label}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  )}
+                />
+              </Form.Group>
+            </Row>
+            <Box display="flex" justifyContent="center" mt="20px">
+              <Button type="submit" color="secondary" variant="contained">
+                Enviar
+              </Button>
+            </Box>
+          </Form>
+
           <Box
             m="40px 0 0 0"
             height="75vh"
@@ -249,44 +374,9 @@ const VentanaEmergenteComponente = () => {
               },
             }}
           >
-            <DataGrid rows={data} columns={columns} pageSize={5} />
+            <DataGrid rows={datosT} columns={columns} pageSize={5} />
           </Box>
-        </div>
-
-        <Box width="300px">
-          <Card>
-            <CardActionArea onClick={abrirModal}>
-              <CardContent>
-                <Typography gutterBottom variant="h5" component="div">
-                  PORCENTAJE DE PROYECTOS QUE CUMPLEN CON LAS METAS DEL PLAN
-                  ESTRATEGÍCO
-                </Typography>
-              </CardContent>
-            </CardActionArea>
-          </Card>
-        </Box>
-        <Modal
-          isOpen={modalAbierto}
-          onRequestClose={cerrarModal}
-          contentLabel="Modal1"
-          style={modalEstilos}
-        >
-          <h2 style={modalEstilos.title}>
-            PORCENTAJE DE PROYECTOS QUE CUMPLEN CON LAS METAS DEL PLAN
-            ESTRATEGÍCO
-          </h2>
-          <BarChart />
-
           <Box display="flex" justifyContent="end" mt="20px">
-            <Button
-              type="submit"
-              color="secondary"
-              variant="contained"
-              style={modalEstilos.Button}
-              onClick={abrirModal2}
-            >
-              Insertar
-            </Button>
             <Button
               type="submit"
               color="primary"
@@ -296,151 +386,10 @@ const VentanaEmergenteComponente = () => {
               Cerrar
             </Button>
           </Box>
-          <Modal
-            isOpen={modalAbierto2}
-            onRequestClose={cerrarModal2}
-            contentLabel="Modal2"
-            style={modalEstilos}
-          >
-            <h2 style={modalEstilos.title}>
-              PORCENTAJE DE PROYECTOS QUE CUMPLEN CON LAS METAS DEL PLAN
-              ESTRATEGÍCO
-            </h2>
-
-            <form noValidate>
-              <Box
-                display="grid"
-                gap="30px"
-                gridTemplateColumns="repeat(2, minmax(0, 1fr))"
-                sx={{
-                  "& > div": {
-                    gridColumn: isNonMobile ? undefined : "span 4",
-                  },
-                }}
-              >
-                <Form.Select size="sm" aria-label="Default select example">
-                  <option>Selecciona un mes</option>
-                  <option value="1">One</option>
-                  <option value="2">Two</option>
-                  <option value="3">Three</option>
-                </Form.Select>
-                <Form.Select
-                  size="sm"
-                  aria-label="Default select example"
-                  options={nextYears}
-                >
-                  <option>Selecciona un año</option>
-                </Form.Select>
-              </Box>
-              <br />
-              <Row className="mb-3">
-                <Form.Group as={Col} md="6" controlId="validationCustom01">
-                  <Form.Label>Numerador</Form.Label>
-                  <Controller
-                    name="numerador"
-                    rules={{ required: true }}
-                    //control={control}
-                    render={({ field }) => (
-                      <Form.Control
-                        //isInvalid={errors.meta}
-                        type="number"
-                        {...field}
-                        placeholder="Numerador"
-                      />
-                    )}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    Requerido
-                  </Form.Control.Feedback>
-                </Form.Group>
-                <Form.Group as={Col} md="6" controlId="validationCustom02">
-                  <Form.Label>Denominador</Form.Label>
-                  <Controller
-                    name="denominador"
-                    rules={{ required: true }}
-                    //control={control}
-                    render={({ field }) => (
-                      <Form.Control
-                        //isInvalid={errors.proceso}
-                        type="number"
-                        {...field}
-                        placeholder="Denomindador"
-                      />
-                    )}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    Requerido
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Row>
-              <Row className="mb-3">
-                <Form.Group as={Col} md="12" controlId="validationCustom01">
-                  <Form.Label>Analisis de las causas </Form.Label>
-                  <Controller
-                    name="causas"
-                    rules={{ required: true }}
-                    //control={control}
-                    render={({ field }) => (
-                      <Form.Control
-                        type="text"
-                        {...field}
-                        placeholder="Analisis de las causas "
-                      />
-                    )}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    Requerido
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Row>
-
-              <Row className="mb-3">
-                <Form.Group as={Col} md="12" controlId="validationCustom01">
-                  <Form.Label>Acciones propuestas</Form.Label>
-                  <Controller
-                    name="propuestas"
-                    rules={{ required: true }}
-                    //control={control}
-                    render={({ field }) => (
-                      <Form.Control
-                        type="text"
-                        {...field}
-                        placeholder="Acciones propuestas"
-                      />
-                    )}
-                  />
-                  <Form.Control.Feedback type="invalid">
-                    Requerido
-                  </Form.Control.Feedback>
-                </Form.Group>
-              </Row>
-
-              <Box display="flex" justifyContent="end" mt="20px">
-                <Button
-                  type="submit"
-                  color="secondary"
-                  variant="contained"
-                  style={modalEstilos.Button}
-                >
-                  Agregar datos
-                </Button>
-                <Button
-                  type="submit"
-                  color="primary"
-                  variant="contained"
-                  onClick={cerrarModal2}
-                >
-                  Volver
-                </Button>
-              </Box>
-            </form>
-          </Modal>
+          <BarChart />
         </Modal>
-      </>
-    );
-  };
-
-
-
-
+      </div>
+    </>
+  );
+}
 export default VentanaEmergenteComponente;

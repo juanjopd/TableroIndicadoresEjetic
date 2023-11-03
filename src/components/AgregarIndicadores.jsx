@@ -9,6 +9,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import axios from 'axios';
 
 Modal.setAppElement("#root");
 
@@ -23,16 +24,18 @@ const Agregar = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      nombre: "",
+      nombre_indicador: "",
+      tipo_indicador: "",
+      tendencia: "",
       meta: "",
       proceso: "",
       sirveI: "",
-      medicion: "",
       responsable: "",
       formula: "",
-      fuente: "",
-      limiteI: "",
-      limiteS: "",
+      frecuencia: "",
+      fuente_informacion: "",
+      Limite_insatifacion: "",
+      Limite_satifacion: "",
     },
   });
 
@@ -47,15 +50,15 @@ const Agregar = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:4000/indicadores")
-      .then((response) => response.json())
-      .then((data) => {
+    axios.get('http://localhost:3001/indicadores')
+      .then((response) => {
+        const data = response.data;
         if (Array.isArray(data)) {
           setData(data);
         }
       })
       .catch((error) => {
-        console.error("Error al obtener los datos:", error);
+        console.error('Error al obtener los datos:', error);
       });
   }, []);
 
@@ -63,7 +66,7 @@ const Agregar = () => {
 
   useEffect(() => {
     // Realizar la solicitud al servidor para obtener los datos de la tabla
-    fetch('http://localhost:4000/tiposi')
+    fetch('http://localhost:3001/tiposi')
       .then((response) => response.json())
       .then((data) => {
         // Almacenar los datos en el estado
@@ -78,7 +81,7 @@ const Agregar = () => {
 
   useEffect(() => {
     // Realizar la solicitud al servidor para obtener los datos de la tabla
-    fetch('http://localhost:4000/tendencia')
+    fetch('http://localhost:3001/tendencia')
       .then((response) => response.json())
       .then((data) => {
         // Almacenar los datos en el estado
@@ -90,51 +93,40 @@ const Agregar = () => {
   }, []);
  
 
-  const handleAddComponent = (formData) => {
+  const handleAddComponent = async (formData) => {
     const tipoSeleccionado = formData.tipo;
     const tendenciaSeleccionada = formData.tendencia;
 
     console.log(formData);
 
-    fetch("http://localhost:4000/indicadores", {
-      method: "POST",
-      body: JSON.stringify(formData), // Convierte a JSON los datos
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(
-            `Error en la solicitud: ${response.status} ${response.statusText}`
-          );
-        }
-        return response.json();
-      })
-      .then((data) => {
-        // Generar un ID único para cada nuevo componente
-        const newComponentId = `component_${componentList.length + 1}`;
-        // Crear un nuevo componente con los valores ingresados por el usuario
-        const newComponent = (
-          <EditIndicadores
-            key={newComponentId}
-            id={newComponentId}
-            data={data} // Asegúrate de usar `data` de la respuesta del servidor
-            tipo={tipoSeleccionado}
-            tendencia={tendenciaSeleccionada}
-          />
-        );
-
-        // Agregar el nuevo componente a la lista
-        setComponentList((prevList) => [...prevList, newComponent]);
-      })
-      .catch((error) => {
-        console.error("Error al enviar los datos:", error);
+    try {
+      const response = await axios.post('http://localhost:3001/indicadores', formData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-    // Cerrar el modal después de agregar el componente
-
+  
+      const data = response.data;
+  
+      const newComponentId = `component_${componentList.length + 1}`;
+      const newComponent = (
+        <EditIndicadores
+          key={newComponentId}
+          id={newComponentId}
+          data={data}
+          tipo={tipoSeleccionado}
+          tendencia={tendenciaSeleccionada}
+        />
+      );
+  
+      setComponentList((prevList) => [...prevList, newComponent]);
+    } catch (error) {
+      console.error('Error al enviar los datos:', error);
+    }
+  
     reset();
     cerrarModal();
+    window.location.reload();
   };
   
   const modalEstilos = {
@@ -192,17 +184,12 @@ const Agregar = () => {
       >
         <h2 style={modalEstilos.title}>AGREGAR INDICADOR</h2>
         <Form noValidate onSubmit={handleSubmit(handleAddComponent)}>
-          {/* <Form.Select size="sm" aria-label="Default select example">
-            <option>Selecciona una entidad</option>
-            <option value="1">One</option>
-            <option value="2">Two</option>
-            <option value="3">Three</option>
-          </Form.Select> */}
           <Row className="mb-3">
-            <Form.Group as={Col} md="12" controlId="validationCustom01">
+            <Form.Group as={Col} md="12" controlId="nombreIndicador">
               <Form.Label>Nombre de indicador</Form.Label>
               <Controller
-                name="nombre"
+                id="nombreIndicador"
+                name="nombre_indicador"
                 rules={{ required: true }}
                 control={control}
                 render={({ field }) => (
@@ -219,7 +206,8 @@ const Agregar = () => {
             </Form.Group>
           </Row>
           <Controller
-            name="tipo" // El nombre debe coincidir con la propiedad en el objeto formData
+            id="tipoIndicador"
+            name="tipo_indicador" // El nombre debe coincidir con la propiedad en el objeto formData
             control={control}
             render={({ field }) => (
               <Form.Select
@@ -238,6 +226,7 @@ const Agregar = () => {
           />
           <br />
           <Controller
+            id="tendencia"
             name="tendencia" // El nombre debe coincidir con la propiedad en el objeto formData
             control={control}
             render={({ field }) => (
@@ -256,9 +245,10 @@ const Agregar = () => {
             )}
           />
           <Row className="mb-3">
-            <Form.Group as={Col} md="6" controlId="validationCustom01">
+            <Form.Group as={Col} md="6" controlId="meta">
               <Form.Label>meta</Form.Label>
               <Controller
+                id="meta"
                 name="meta"
                 rules={{ required: true }}
                 control={control}
@@ -275,9 +265,10 @@ const Agregar = () => {
                 Requerido
               </Form.Control.Feedback>
             </Form.Group>
-            <Form.Group as={Col} md="6" controlId="validationCustom02">
+            <Form.Group as={Col} md="6" controlId="proceso">
               <Form.Label>Proceso</Form.Label>
               <Controller
+                id="proceso"
                 name="proceso"
                 rules={{ required: true }}
                 control={control}
@@ -296,10 +287,11 @@ const Agregar = () => {
             </Form.Group>
           </Row>
           <Row className="mb-3">
-            <Form.Group as={Col} md="6" controlId="validationCustom01">
+            <Form.Group as={Col} md="6" controlId="frecuenciaMedicion">
               <Form.Label>Frecuencia de medicion</Form.Label>
               <Controller
-                name="medicion"
+                id="frecuencia"
+                name="frecuencia"
                 rules={{ required: true }}
                 control={control}
                 render={({ field }) => (
@@ -314,9 +306,10 @@ const Agregar = () => {
                 Requerido
               </Form.Control.Feedback>
             </Form.Group>
-            <Form.Group as={Col} md="6" controlId="validationCustom02">
+            <Form.Group as={Col} md="6" controlId="responsable">
               <Form.Label>Responsable</Form.Label>
               <Controller
+                id="responsable"
                 name="responsable"
                 rules={{ required: true }}
                 control={control}
@@ -334,9 +327,10 @@ const Agregar = () => {
             </Form.Group>
           </Row>
           <Row className="mb-3">
-            <Form.Group as={Col} md="12" controlId="validationCustom01">
+            <Form.Group as={Col} md="12" controlId="paraSirve">
               <Form.Label>Para que sirve el indicador</Form.Label>
               <Controller
+                id="sirveI"
                 name="sirveI"
                 rules={{ required: true }}
                 control={control}
@@ -354,9 +348,10 @@ const Agregar = () => {
             </Form.Group>
           </Row>
           <Row className="mb-3">
-            <Form.Group as={Col} md="12" controlId="validationCustom01">
+            <Form.Group as={Col} md="12" controlId="formula">
               <Form.Label>formula</Form.Label>
               <Controller
+                id="formula"
                 name="formula"
                 rules={{ required: true }}
                 control={control}
@@ -374,10 +369,11 @@ const Agregar = () => {
             </Form.Group>
           </Row>
           <Row className="mb-3">
-            <Form.Group as={Col} md="12" controlId="validationCustom01">
+            <Form.Group as={Col} md="12" controlId="fuenteInfo">
               <Form.Label>fuente de informacion</Form.Label>
               <Controller
-                name="fuente"
+                id="fuente"
+                name="fuente_informacion"
                 rules={{ required: true }}
                 control={control}
                 render={({ field }) => (
@@ -394,10 +390,11 @@ const Agregar = () => {
             </Form.Group>
           </Row>
           <Row className="mb-3">
-            <Form.Group as={Col} md="12" controlId="validationCustom01">
+            <Form.Group as={Col} md="12" controlId="limiteIns">
               <Form.Label>Limite de insatifacion</Form.Label>
               <Controller
-                name="limiteI"
+                id="limiteI"
+                name="Limite_insatifacion"
                 rules={{ required: true }}
                 control={control}
                 render={({ field }) => (
@@ -414,10 +411,11 @@ const Agregar = () => {
             </Form.Group>
           </Row>
           <Row className="mb-3">
-            <Form.Group as={Col} md="12" controlId="validationCustom01">
+            <Form.Group as={Col} md="12" controlId="limiteSat">
               <Form.Label>Limite de satifacion</Form.Label>
               <Controller
-                name="limiteS"
+                id="limites"
+                name="Limite_satifacion"
                 rules={{ required: true }}
                 control={control}
                 render={({ field }) => (
@@ -470,7 +468,7 @@ const Agregar = () => {
                         {indicador.Limite_insatifacion}
                       </li>
                       <li>
-                        Límite de satisfacción: {indicador.Limte_satifacion}
+                        Límite de satisfacción: {indicador.Limite_satifacion}
                       </li>
                     </ul>
                   </Box>
